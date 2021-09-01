@@ -1,9 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import {FrontEndDeveloperModel, HobbyModel} from './front-end-developers';
-import {EmailValidationService} from './email-validation.service';
+import { FrontEndDeveloperModel, HobbyModel } from './shared/models/front-end-developers';
+import { EmailValidationService } from './shared/services/email-validation.service';
+import { AuthService } from './shared/services/auth.service';
+import {DatePipe} from '@angular/common';
 
-interface Technologies {
+export interface Technologies {
   technology: string;
   version: string[];
 }
@@ -13,9 +15,11 @@ interface Technologies {
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
 
   title = 'front-end-application-form';
+
+  frontEndFormGroup: FormGroup;
 
   jsTechnologies: Technologies[] = [
     {technology: 'angular', version: ['1.1.1', '1.2.1', '1.3.3']},
@@ -24,25 +28,47 @@ export class AppComponent {
 
   selectedTechnology: string[];
   hobbies: HobbyModel[] = [];
-  emailValidation = new EmailValidationService();
+  name: string;
+  duration: number;
 
-  frontEndFormGroup: FormGroup = new FormGroup({
-    firstNameCtrl: new FormControl('', [Validators.required]),
-    lastNameCtrl: new FormControl('', [Validators.required]),
-    dateCtrl: new FormControl('', [Validators.required]),
-    technologyCtrl: new FormControl('', [Validators.required]),
-    technologyVersionCtrl: new FormControl('', [Validators.required]),
-    emailCtrl: new FormControl('', [Validators.required, Validators.email],
-      [this.emailValidation.asyncEmailValidator.bind(this)]),
-    hobbiesCtrl: new FormControl('', [Validators.required]),
-    hobbiesDurationCtrl: new FormControl('', [Validators.required])
-  });
+  constructor(private auth: AuthService,
+              private emailValidation: EmailValidationService,
+              private datepipe: DatePipe) {}
 
-  constructor() {}
+  ngOnInit(): void {
+    this.initForm();
+  }
 
-  hasError = (controlName: string, errorName: string) => {
-    console.log(this.frontEndFormGroup.controls[controlName]);
-    return this.frontEndFormGroup.controls[controlName].hasError(errorName);
+  initForm = () => {
+    this.frontEndFormGroup = new FormGroup({
+      firstNameCtrl: new FormControl('', [Validators.required]),
+      lastNameCtrl: new FormControl('', [Validators.required]),
+      dateCtrl: new FormControl('', [Validators.required]),
+      technologyCtrl: new FormControl('', [Validators.required]),
+      technologyVersionCtrl: new FormControl('', [Validators.required]),
+      emailCtrl: new FormControl('', [Validators.required, Validators.email],
+        [this.emailValidation.validateEmail()]),
+      hobbiesCtrl: new FormControl('', [Validators.required]),
+      hobbiesDurationCtrl: new FormControl('', [Validators.required])
+    });
+  }
+
+  sendFrontEndDataProcess(formGroupValue): void {
+    if (this.frontEndFormGroup.valid) {
+      this.auth.sendFrontEndData(this.executeFrontEndForm(formGroupValue))/*.subscribe(() => {})*/;
+    }
+  }
+
+  executeFrontEndForm(formGroupValue): FrontEndDeveloperModel {
+    return {
+      firstName: formGroupValue.firstNameCtrl,
+      lastName: formGroupValue.lastNameCtrl,
+      dateOfBirth: this.datepipe.transform(formGroupValue.dateCtrl, 'dd/mm/yyyy'),
+      framework: this.jsTechnologies.find(data => data.version === formGroupValue.technologyCtrl).technology,
+      frameworkVersion: formGroupValue.technologyVersionCtrl,
+      email: formGroupValue.emailCtrl,
+      hobby: this.hobbies
+    };
   }
 
   removeHobby(i): void {
@@ -50,7 +76,7 @@ export class AppComponent {
   }
 
   addHobby(): void {
-    this.hobbies.push({name: '', duration: 0});
+    this.hobbies.push(new HobbyModel(this.name, this.duration));
   }
 
 }

@@ -1,12 +1,12 @@
-export interface HobbyModel{
-  name: string;
-  duration: number;
+export class HobbyModel{
+  constructor(public name: string, public duration: number)
+  {}
 }
 
 export interface FrontEndDeveloperModel{
   firstName: string;
   lastName: string;
-  dateOfBirth: Date;
+  dateOfBirth: string;
   framework: string;
   frameworkVersion: string;
   email: string;

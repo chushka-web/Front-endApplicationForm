@@ -52,7 +52,7 @@
         <mat-form-field appearance="standard">
           <mat-label>Выбор версии фреймворка</mat-label>
           <mat-select
-            [disabled]="selectedTechnology == null"
+            [attr.disabled]="selectedTechnology == null"
             required
             formControlName="technologyVersionCtrl">
             <mat-option *ngFor="let technologyVersion of selectedTechnology"
@@ -69,6 +69,8 @@
                  type="email"
                  placeholder="example@example.com"
                  formControlName="emailCtrl">
+          <mat-error *ngIf="frontEndFormGroup.controls['emailCtrl'].errors?.emailExists">
+            Такой email уже существует</mat-error>
         </mat-form-field>
 
         <div *ngFor="let hobby of hobbies; let i = index">
@@ -87,7 +89,6 @@
                    formControlName="hobbiesDurationCtrl"
                    [(ngModel)]="hobby.duration"
                    name="hobby{{i}}">
-            <mat-error *ngIf="hasError('email', 'email')">Invalid email address</mat-error>
           </mat-form-field>
 
           <button mat-flat-button (click)="removeHobby(i)">
@@ -103,7 +104,8 @@
 
       <mat-card-actions align="center">
         <button mat-raised-button class="submit" type="submit" color="primary"
-                [disabled]="!frontEndFormGroup.valid">Submit</button>
+
+                (click)="sendFrontEndDataProcess(frontEndFormGroup.value)">Submit</button>
       </mat-card-actions>
     </form>
 

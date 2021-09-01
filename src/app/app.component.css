@@ -24,6 +24,3 @@ button.submit:hover, button.submit:active {
   border: 2px solid #4E6AF9;
   margin: -1px;
 }
-input.ng-pending {
-  border: 1px solid red;
-}
